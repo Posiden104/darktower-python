@@ -128,7 +128,7 @@ class ButtonGrid:
     
     def on_button_click(self, text):
         """Handle button click events from the grid"""
-        if self.buttons_enabled and self.game_controller.IS_DEBUG:
+        if self.buttons_enabled:
             self.game_controller.clear_message()
         self.handle_button_click(text)
     

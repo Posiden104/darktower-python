@@ -63,22 +63,53 @@ class GameController:
     
     def create_menu(self):
         """Create the menu bar"""
-        menubar = tk.Menu(self.root)
-        self.root.config(menu=menubar)
+        self.menubar = tk.Menu(self.root)
+        self.root.config(menu=self.menubar)
         
         # File menu
-        file_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="File", menu=file_menu)
+        file_menu = tk.Menu(self.menubar, tearoff=0)
+        self.menubar.add_cascade(label="File", menu=file_menu)
         
         file_menu.add_command(label="New Game", command=self.new_game)
-        file_menu.add_command(label="Debug", command=self.setup_debug)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.root.quit)
-    
+
+        # Debug Menu
+        debug_menu = tk.Menu(self.menubar, tearoff=0)
+        self.menubar.add_cascade(label="Debug", menu=debug_menu)
+        debug_menu.add_command(label="Run automated commands", command=self.setup_debug)
+        debug_menu.add_command(label="Clear Messages", command=self.clear_message)
+        debug_menu.add_separator()
+        debug_menu.add_command(label="Set seed 42", command=lambda: self.random.seed(42))
+
+
+    def setup_player_menu(self):
+        """Setup the player menu"""
+        # Function menu
+        if hasattr(self, 'player_menu_created') and self.player_menu_created:
+            self.menubar.delete("Function")
+        player_menu = tk.Menu(self.menubar, tearoff=0)
+        self.menubar.add_cascade(label="Function", menu=player_menu)
+
+        for idx, p in enumerate(self.players, start=1):
+            m = tk.Menu(player_menu, tearoff=0)
+            player_menu.add_cascade(label=f"Player {idx}", menu=m)
+            
+            # Submenu for each player
+            m.add_command(label="Show Gold", command=lambda p=p: p.display("gold"))
+            m.add_command(label="Show Warriors", command=lambda p=p: p.display("warriors"))
+            m.add_command(label="Show Food", command=lambda p=p: p.display("food"))
+            m.add_command(label="Show Keys", command=lambda p=p: p.display("keys"))
+        self.player_menu_created = True
+
+
     def new_game(self):
         """Start a new game"""
+        self.menubar.delete("Function")
+        self.player_menu_created = False
         self.state_machine.reset()
         self.state_machine.start()
+
 
     def __init__(self):
         self.players = []
@@ -110,6 +141,18 @@ class GameController:
         self.display.pack()
         
         # Create message label below display
+        self.player_message_label = tk.Label(
+            self.root,
+            text="",
+            bg="black",
+            fg="#d60000",  # Red text to match display
+            font=("Arial", 10),
+            wraplength=350,  # Wrap text to fit window width
+            justify=tk.CENTER
+        )
+        self.player_message_label.pack(pady=(10, 0))
+
+        # Create message label below display
         self.message_label = tk.Label(
             self.root,
             text="",
@@ -140,9 +183,14 @@ class GameController:
         """Set the message text below the display"""
         self.message_label.config(text=message)
     
+    def set_player_message(self, message):
+        """Set the player-specific message text below the display"""
+        self.player_message_label.config(text=message)
+
     def clear_message(self):
         """Clear the message text"""
         self.message_label.config(text="")
+        self.player_message_label.config(text="")
     
     def on_grid_button_click(self, text):
         """Handle button clicks from the grid"""
@@ -152,6 +200,12 @@ class GameController:
         else:
             print(f"Button clicked: {text}")
     
+    def roll_dice(self):
+        """Roll a hex die and return the result"""
+        die1 = self.random.randint(0, 15)
+        print(f"Dice rolled: {die1}")
+        return die1
+
     def run(self):
         """Start the game loop"""
         self.root.mainloop()
