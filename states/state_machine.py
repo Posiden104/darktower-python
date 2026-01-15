@@ -64,6 +64,9 @@ class StateMachine:
         self.current_state = state_class(self.game_controller)
         self.current_state_name = new_state_name
         self.current_state.enter(**kwargs)
+        
+        # Update stats window if it exists
+        self.game_controller.update_stats_display()
     
     def update(self):
         """

@@ -37,4 +37,4 @@ class PlayerSelectState(State):
 
     def exit(self):
         self.game_controller.setup_player_menu()
-        pass
+        self.game_controller.game_master_window.create_stats_window()

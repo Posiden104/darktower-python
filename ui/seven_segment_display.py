@@ -190,7 +190,7 @@ class SevenSegmentDisplay:
             self._update_digit(self.digit1_segments, "minus")
             self._update_digit(self.digit2_segments, "off")
             return
-        
+
         # Clamp value to -9 to 99
         value = max(-9, min(99, int(value)))
         

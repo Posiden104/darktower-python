@@ -28,9 +28,9 @@ class LevelSelectState(State):
         # Show initial level
         display.set_value(["l", self.current_level])
 
-        if self.game_controller.IS_DEBUG:
-            self.current_level = 1
-            self.on_button_click("YES")
+        # if self.game_controller.IS_DEBUG:
+        #     self.current_level = 1
+        #     self.on_button_click("YES")
     
     def on_button_click(self, text):
         """Handle button clicks in level select state"""

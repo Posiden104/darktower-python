@@ -47,10 +47,12 @@ class PlayerTurnState(State):
     def set_turn_over(self):
         self.display.set_value(["minus", self.player_number])
         self.is_turn_over = True
+        self.game_controller.clear_message()
+        self.player.consume_food()
+        self.game_controller.update_stats_display()
 
     def end_turn(self):
         """End the current player's turn and switch to the next player"""
-        self.player.consume_food()
         self.game_controller.state_machine.change_state("player_turn", player_number=self.next_player_number)
 
     # MOVE RESULTS
@@ -70,9 +72,14 @@ class PlayerTurnState(State):
 
         print(f"Player {self.player_number} rolled a {result}")
 
+        forced_move = self.game_controller.check_forced_moves()
+        if forced_move is not None:
+            result = forced_move
+
         if result <= 2:
             print(f"Player {self.player_number} got lost!")
             self.game_controller.set_message(f"Player {self.player_number} got lost!")
+            self.player.get_lost()
         elif result <= 4:
             print(f"Player {self.player_number} encountered a dragon!")
             self.game_controller.set_message(f"Player {self.player_number} encountered a dragon!")
@@ -80,6 +87,7 @@ class PlayerTurnState(State):
         elif result <= 7:
             print(f"Player {self.player_number} encountered a plague!")
             self.game_controller.set_message(f"Player {self.player_number} encountered a plague!")
+            self.player.get_plagued()
         elif result <= 10:
             print(f"Player {self.player_number} encountered a battle!")
             self.game_controller.set_message(f"Player {self.player_number} encountered a battle!")
@@ -125,8 +133,31 @@ class PlayerTurnState(State):
 
         result = self.game_controller.roll_dice()
         result /= 2
+        result += 13
 
         self.player.gold += result
         self.player.display("gold")
 
         self.game_controller.set_message(f"Player {self.player_number} has been awarded treasure!")
+
+        result = self.game_controller.roll_dice()
+
+        if result <= 9:
+            print(f"Player {self.player_number} found a key!")
+            self.game_controller.set_message(f"Player {self.player_number} found a key!")
+            self.player.add_key()
+        elif result == 10:
+            print(f"Player {self.player_number} found Pegasus!")
+            self.game_controller.set_message(f"Player {self.player_number} found Pegasus!")
+            self.player.add_pegasus()
+        elif result == 11:
+            print(f"Player {self.player_number} found the Dragon Sword!")
+            self.game_controller.set_message(f"Player {self.player_number} found the Dragon Sword!")
+            self.player.add_dragon_sword()
+        elif result == 12:
+            print(f"Player {self.player_number} found the Wizard!")
+            self.game_controller.set_message(f"Player {self.player_number} found the Wizard!")
+            self.player.add_wizard()
+        elif result <= 15:
+            print(f"Player {self.player_number} only found gold!")
+

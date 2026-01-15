@@ -6,13 +6,13 @@ It initializes the window and manages game states through a state machine.
 """
 
 import tkinter as tk
-from tkinter import messagebox
+from dragon import Dragon
+from drum import Drum
 from states.state_machine import StateMachine
-from states.level_select_state import LevelSelectState
-from states.player_select_state import PlayerSelectState
-from states.player_turn_state import PlayerTurnState
 from ui.button_grid import ButtonGrid
 from ui.seven_segment_display import SevenSegmentDisplay
+from ui.player_stats_window import PlayerStatsWindow
+from ui.game_master_window import GameMasterWindow
 import random
 
 class GameController:
@@ -23,7 +23,7 @@ class GameController:
     def setup_debug(self):
         """Setup debug mode with deterministic random seed"""
         self.random.seed(42)
-        self.IS_DEBUG = True
+        self.IS_DEBUG = False
 
         # Debug steps: list of dicts with 'button' and 'message' keys
         self.debug_steps = [
@@ -107,8 +107,15 @@ class GameController:
         """Start a new game"""
         self.menubar.delete("Function")
         self.player_menu_created = False
+        
+        # Destroy the player stats window if it exists
+        if hasattr(self, 'game_master_window') and self.game_master_window.stats_window:
+            self.game_master_window.stats_window.window.destroy()
+            self.game_master_window.stats_window = None
+        
         self.state_machine.reset()
         self.state_machine.start()
+
 
 
     def __init__(self):
@@ -120,12 +127,16 @@ class GameController:
         self.root.configure(bg="black")
 
         self.random = random.Random()
-        
         # Create menu bar
         self.create_menu()
         
         # DEBUG
-        self.IS_DEBUG = False
+        self.IS_DEBUG = True
+        self.random.seed(42)
+        self.has_forced_move = False
+        self.has_forced_die_roll = False
+        self.forced_move = ""
+        self.forced_die_roll = 0
         
         # Create frame for 7-segment display
         self.display_frame = tk.Frame(self.root, bg="black")
@@ -175,10 +186,19 @@ class GameController:
         # Create the button grid with callback
         self.grid = ButtonGrid(self.grid_frame, on_button_click_callback=self.on_grid_button_click, game_controller=self)
         
-        # Initialize the state machine
+        # Create Drum
+        self.drum = Drum(self)
+
+        # Create Dragon
+        self.dragon = Dragon(self)
+
+        # Create the game master window
+        self.game_master_window = GameMasterWindow(self)
+
+        # Initialize the state machine this enters into an infinite loop of states
         self.state_machine = StateMachine(self)
         self.state_machine.start()
-
+        
     def set_message(self, message):
         """Set the message text below the display"""
         self.message_label.config(text=message)
@@ -192,6 +212,11 @@ class GameController:
         self.message_label.config(text="")
         self.player_message_label.config(text="")
     
+    def update_stats_display(self):
+        """Update the player stats display"""
+        if hasattr(self, 'game_master_window') and self.game_master_window.stats_window:
+            self.game_master_window.stats_window.update_player_stats()
+    
     def on_grid_button_click(self, text):
         """Handle button clicks from the grid"""
         # Delegate to the current state if it has a handler
@@ -202,14 +227,31 @@ class GameController:
     
     def roll_dice(self):
         """Roll a hex die and return the result"""
-        die1 = self.random.randint(0, 15)
-        print(f"Dice rolled: {die1}")
-        return die1
+        result = self.random.randint(0, 15)
+        print(f"Dice rolled: {result}")
+        if self.has_forced_die_roll:
+            result = self.forced_die_roll
+            self.has_forced_die_roll = False
+            print(f"Forced die roll applied: {result}")
+        return result
+
+    def check_forced_moves(self):
+        """Check if there are any forced moves (e.g., from game master)"""
+        if self.has_forced_move:
+            move = self.forced_move
+            self.has_forced_move = False
+            print(f"Forced move applied: {move}")
+            match move:
+                case "lost": return 2
+                case "dragon": return 4
+                case "plague": return 7
+                case "battle": return 10
+                case _: return 15 # Nothing
+        return None
 
     def run(self):
         """Start the game loop"""
         self.root.mainloop()
-
 
 def main():
     game = GameController()
