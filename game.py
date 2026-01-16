@@ -117,7 +117,6 @@ class GameController:
         self.state_machine.start()
 
 
-
     def __init__(self):
         self.players = []
 
@@ -138,50 +137,8 @@ class GameController:
         self.forced_move = ""
         self.forced_die_roll = 0
         
-        # Create frame for 7-segment display
-        self.display_frame = tk.Frame(self.root, bg="black")
-        self.display_frame.pack(pady=(20, 0))
-        
-        # Create the 7-segment display
-        self.display = SevenSegmentDisplay(
-            self.display_frame,
-            on_color="#d60000",   # Red
-            off_color="#2a0000",  # Dark red
-            bg_color="#000000"    # Black
-        )
-        self.display.pack()
-        
-        # Create message label below display
-        self.player_message_label = tk.Label(
-            self.root,
-            text="",
-            bg="black",
-            fg="#d60000",  # Red text to match display
-            font=("Arial", 10),
-            wraplength=350,  # Wrap text to fit window width
-            justify=tk.CENTER
-        )
-        self.player_message_label.pack(pady=(10, 0))
-
-        # Create message label below display
-        self.message_label = tk.Label(
-            self.root,
-            text="",
-            bg="black",
-            fg="#d60000",  # Red text to match display
-            font=("Arial", 10),
-            wraplength=350,  # Wrap text to fit window width
-            justify=tk.CENTER
-        )
-        self.message_label.pack(pady=(10, 0))
-        
-        # Add spacing between message and button grid
-        self.spacer_frame = tk.Frame(self.root, bg="black", height=180)
-        self.spacer_frame.pack()
-        
-        # Create frame for button grid
-        self.grid_frame = tk.Frame(self.root, bg="black")
-        self.grid_frame.pack(fill=tk.BOTH, expand=True)
+        # Setup the windows and stuff
+        self.setup_ui()
         
         # Create the button grid with callback
         self.grid = ButtonGrid(self.grid_frame, on_button_click_callback=self.on_grid_button_click, game_controller=self)
@@ -191,6 +148,13 @@ class GameController:
 
         # Create Dragon
         self.dragon = Dragon(self)
+
+        # Setup the Dark Tower
+        self.dt_brigands = self.roll_dice() + 17
+
+        # TODO: Randomize these later
+        self.dt_key_1 = "bronze"
+        self.dt_key_2 = "silver"
 
         # Create the game master window
         self.game_master_window = GameMasterWindow(self)
@@ -252,6 +216,53 @@ class GameController:
                 case "battle": return 10
                 case _: return 15 # Nothing
         return None
+
+    def setup_ui(self):
+        # Create frame for 7-segment display
+        self.display_frame = tk.Frame(self.root, bg="black")
+        self.display_frame.pack(pady=(20, 0))
+        
+        # Create the 7-segment display
+        self.display = SevenSegmentDisplay(
+            self.display_frame,
+            on_color="#d60000",   # Red
+            off_color="#2a0000",  # Dark red
+            bg_color="#000000"    # Black
+        )
+        self.display.pack()
+        
+        # Create message label below display
+        self.player_message_label = tk.Label(
+            self.root,
+            text="",
+            bg="black",
+            fg="#d60000",  # Red text to match display
+            font=("Arial", 10),
+            wraplength=350,  # Wrap text to fit window width
+            justify=tk.CENTER
+        )
+        self.player_message_label.pack(pady=(10, 0))
+
+        # Create message label below display
+        self.message_label = tk.Label(
+            self.root,
+            text="",
+            bg="black",
+            fg="#d60000",  # Red text to match display
+            font=("Arial", 10),
+            wraplength=350,  # Wrap text to fit window width
+            justify=tk.CENTER
+        )
+        self.message_label.pack(pady=(10, 0))
+        
+        # Add spacing between message and button grid
+        self.spacer_frame = tk.Frame(self.root, bg="black", height=180)
+        self.spacer_frame.pack()
+        
+        # Create frame for button grid
+        self.grid_frame = tk.Frame(self.root, bg="black")
+        self.grid_frame.pack(fill=tk.BOTH, expand=True)
+        
 
     def run(self):
         """Start the game loop"""

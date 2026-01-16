@@ -118,6 +118,7 @@ class PlayerTurnState(State):
         elif result <= 9:
             print(f"Player {self.player_number} encountered a battle!")
             self.gc.set_message(f"Player {self.player_number} encountered a battle!")
+            self.do_battle()
         else:
             print(f"Player {self.player_number} found treasure!")
             self.gc.set_message(f"Player {self.player_number} found treasure!")
@@ -166,3 +167,8 @@ class PlayerTurnState(State):
         elif result <= 15:
             print(f"Player {self.player_number} only found gold!")
 
+
+    def do_battle(self):
+        """Handle battle logic for the player"""
+        print(f"Player {self.player_number} is engaging in battle...")
+        self.gc.set_gm_status(f"Player {self.player_number} is engaging in battle...")
