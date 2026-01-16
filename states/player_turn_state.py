@@ -28,6 +28,8 @@ class PlayerTurnState(State):
         self.player: Player = self.gc.players[self.player_number - 1]
         self.display.set_value(self.player_number)
         self.next_player_number = self.player_number + 1 if self.player_number < len(self.gc.players) else 1
+        self.is_battling = False
+        self.is_at_bazaar = False
 
     def exit(self):
         pass
@@ -35,9 +37,17 @@ class PlayerTurnState(State):
     def on_button_click(self, text):
         """Handle button clicks"""
         self.gc.set_gm_status("")
+
+        if self.is_at_bazaar:
+            self.gc.bazaar.on_button_click(text)
+            return
+        
         if text == "NO":
             if self.is_turn_over:
                 self.end_turn()
+            if self.is_battling:
+                self.gc.set_message("Attempt to flee battle")
+                self.gc.set_gm_status(f"Player {self.player_number} is attempting to flee battle...")
         if text == "MOVE":
             if not self.is_turn_over:
                 self.move()
@@ -46,6 +56,10 @@ class PlayerTurnState(State):
             if not self.is_turn_over:
                 self.tomb_ruin()
                 self.set_turn_over()
+        if text == "BAZAAR":
+            if not self.is_turn_over:
+                self.is_at_bazaar = True
+                self.gc.bazaar.enter(self)
 
     def set_turn_over(self):
         self.display.set_value(["minus", self.player_number])
@@ -58,6 +72,11 @@ class PlayerTurnState(State):
     def end_turn(self):
         """End the current player's turn and switch to the next player"""
         self.gc.state_machine.change_state("player_turn", player_number=self.next_player_number)
+
+    def exit_bazaar(self):
+        """Exit the bazaar and continue the player's turn"""
+        self.is_at_bazaar = False
+        self.set_turn_over()
 
     # MOVE RESULTS
     # RESULT   HEX   DEC   LINE
@@ -172,3 +191,4 @@ class PlayerTurnState(State):
         """Handle battle logic for the player"""
         print(f"Player {self.player_number} is engaging in battle...")
         self.gc.set_gm_status(f"Player {self.player_number} is engaging in battle...")
+        self.is_battling = True

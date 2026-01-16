@@ -8,6 +8,7 @@ It initializes the window and manages game states through a state machine.
 import tkinter as tk
 from dragon import Dragon
 from drum import Drum
+from locations.bazaar import Bazaar
 from states.state_machine import StateMachine
 from ui.button_grid import ButtonGrid
 from ui.seven_segment_display import SevenSegmentDisplay
@@ -149,6 +150,9 @@ class GameController:
         # Create Dragon
         self.dragon = Dragon(self)
 
+        # Create Bazaar
+        self.bazaar = Bazaar(self)
+
         # Setup the Dark Tower
         self.dt_brigands = self.roll_dice() + 17
 
@@ -193,10 +197,10 @@ class GameController:
         else:
             print(f"Button clicked: {text}")
     
-    def roll_dice(self):
+    def roll_dice(self, zero_to=15):
         """Roll a hex die and return the result"""
-        result = self.random.randint(0, 15)
-        print(f"Dice rolled: {result}")
+        result = self.random.randint(0, zero_to)
+        print(f"Dice rolled (0-{zero_to}): {result}")
         if self.has_forced_die_roll:
             result = self.forced_die_roll
             self.has_forced_die_roll = False
