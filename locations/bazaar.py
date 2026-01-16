@@ -26,6 +26,10 @@ class Bazaar:
         self.player = self.gc.players[player_number - 1]
         self.state:PlayerTurnState = state
         self.set_starting_prices()
+        self.show_warriors()
+        self.is_buying = False
+        self.number_buying = 1
+        self.item_price = 0
 
     def exit(self):
         self.state.exit_bazaar()
@@ -42,8 +46,109 @@ class Bazaar:
         """Handle button clicks"""
         self.gc.set_gm_status("")
         if text == "NO":
-            pass
+            if self.is_buying:
+                # no, I dont need any more, buy please
+                self.confirm_purchase()
+            else:
+                self.next_item()
         if text == "YES":
-            self.exit()
+            if not self.is_buying:
+                self.is_buying = True
+                self.start_transaction()
+            else:
+                # yes, i'd like another please
+                self.increase_number_buying()
         if text == "HAGGLE":
             self.gc.set_message("Player Haggled")
+
+    def next_item(self):
+        """Cycle to the next item in the bazaar"""
+        if self.showing_warriors:
+            self.show_food()
+        elif self.showing_food:
+            self.show_beast()
+        elif self.showing_beast:
+            self.show_scout()
+        elif self.showing_scout:
+            self.show_healer()
+        elif self.showing_healer:
+            self.show_warriors()
+
+    def clear_flags(self):
+        self.showing_warriors = False
+        self.showing_food = False
+        self.showing_beast = False
+        self.showing_scout = False
+        self.showing_healer = False
+
+    def show_warriors(self):
+        """Display the number of warriors the player has"""
+        self.clear_flags()
+        self.showing_warriors = True
+        self.item_price = self.warrior_price
+        self.display.set_value(self.warrior_price)
+        self.gc.set_message(f"Warriors")
+    
+    def show_food(self):
+        """Display the amount of food the player has"""
+        self.clear_flags()
+        self.showing_food = True
+        self.item_price = self.food_price
+        self.display.set_value(self.food_price)
+        self.gc.set_message(f"Food")
+    
+    def show_beast(self):
+        """Display if the player has a beast"""
+        self.clear_flags()
+        self.showing_beast = True
+        self.item_price = self.beast_price
+        self.display.set_value(self.beast_price)
+        self.gc.set_message(f"Beast")
+    
+    def show_scout(self):
+        """Display if the player has a scout"""
+        self.clear_flags()
+        self.showing_scout = True
+        self.item_price = self.scout_price
+        self.display.set_value(self.scout_price)
+        self.gc.set_message(f"Scout")
+    
+    def show_healer(self):
+        """Display if the player has a healer"""
+        self.clear_flags()
+        self.showing_healer = True
+        self.item_price = self.healer_price
+        self.display.set_value(self.healer_price)
+        self.gc.set_message(f"Healer")
+    
+    def start_transaction(self):
+        """Start a transaction for buying an item"""
+        self.display.set_value(self.number_buying)
+
+    def confirm_purchase(self):
+        """Confirm the purchase of the selected items"""
+        total_cost = self.number_buying * self.item_price
+
+        if total_cost > self.player.gold:
+            self.bazaar_closed()
+            return
+        
+        self.player.gold -= total_cost
+        self.gc.update_stats_display()
+        self.gc.set_message(f"Purchased {self.number_buying} item(s) for {total_cost} gold.")
+        self.exit()
+
+    def bazaar_closed(self):
+        """Handle the bazaar being closed"""
+        self.gc.set_message("The bazaar is closed.")
+        self.exit()
+
+    def increase_number_buying(self):
+        """Increase the number of items the player wants to buy"""
+        self.number_buying += 1
+        total_cost = self.number_buying * self.item_price
+
+        if total_cost > self.player.gold:
+            self.bazaar_closed()
+       
+        self.display.set_value(self.number_buying)

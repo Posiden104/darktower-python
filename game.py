@@ -106,7 +106,8 @@ class GameController:
 
     def new_game(self):
         """Start a new game"""
-        self.menubar.delete("Function")
+        if hasattr(self, 'player_menu_created') and self.player_menu_created:
+            self.menubar.delete("Function")
         self.player_menu_created = False
         
         # Destroy the player stats window if it exists
