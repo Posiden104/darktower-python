@@ -15,20 +15,20 @@ class StateMachine:
     Manages game states and handles transitions between them.
     
     Usage:
-        state_machine = StateMachine(game_controller)
+        state_machine = StateMachine(gc)
         state_machine.register_state("level_select", LevelSelectState)
         state_machine.register_state("game_play", GamePlayState)
         state_machine.change_state("level_select")
     """
     
-    def __init__(self, game_controller):
+    def __init__(self, gc):
         """
         Initialize the state machine.
         
         Args:
-            game_controller: Reference to the main game controller
+            gc: Reference to the main game controller
         """
-        self.game_controller = game_controller
+        self.gc = gc
         self.states = {}  # Dictionary of state_name -> State class
         self.current_state = None
         self.current_state_name = None
@@ -61,12 +61,12 @@ class StateMachine:
         
         # Create and enter new state
         state_class = self.states[new_state_name]
-        self.current_state = state_class(self.game_controller)
+        self.current_state = state_class(self.gc)
         self.current_state_name = new_state_name
         self.current_state.enter(**kwargs)
         
         # Update stats window if it exists
-        self.game_controller.update_stats_display()
+        self.gc.update_stats_display()
     
     def update(self):
         """

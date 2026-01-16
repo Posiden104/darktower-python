@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 class Player:
 
-    def __init__(self, game_controller: "GameController", player_number: int):
+    def __init__(self, gc: "GameController", player_number: int):
         self.warriors = 10
         self.gold = 30
         self.food = 25
@@ -19,7 +19,7 @@ class Player:
         self.healer = False
         self.pegasus = False
         self.kingdom = 1
-        self.game_controller: "GameController" = game_controller
+        self.gc: "GameController" = gc
         self.player_number = player_number + 1
 
     def can_enter_frontier(self) -> bool:
@@ -49,10 +49,11 @@ class Player:
     
     def get_plagued(self):
         print(f"Player {self.player_number} has been plagued!")
-        self.game_controller.drum.display(self.player_number, "plague")
+        self.gc.set_gm_status(f"Player {self.player_number} has been plagued!")
+        self.gc.drum.display(self.player_number, "plague")
         
         if self.healer:
-            self.game_controller.drum.display(self.player_number, "healer")
+            self.gc.drum.display(self.player_number, "healer")
             self.warriors += 2
         else:
             self.warriors -= 2
@@ -60,24 +61,26 @@ class Player:
         self.warriors = max(0, self.warriors)
         self.warriors = min(99, self.warriors)
         
-        self.game_controller.drum.display(self.player_number, "warriors", self.warriors)
+        self.gc.drum.display(self.player_number, "warriors", self.warriors)
 
     def get_lost(self):
         print(f"Player {self.player_number} has gotten lost!")
-        self.game_controller.drum.display(self.player_number, "lost")
+        self.gc.drum.display(self.player_number, "lost")
 
     def dragon_attack(self):
+        self.gc.set_gm_status(f"Player {self.player_number} is being attacked by the dragon!")
+        
         if self.dragon_sword:
             print(f"Player {self.player_number} used the Dragon Sword to defeat the dragon!")
-            self.game_controller.drum.display(self.player_number, "dragon_sword")
+            self.gc.drum.display(self.player_number, "dragon_sword")
 
-            self.warriors += self.game_controller.dragon.warriors
-            self.game_controller.dragon.warriors = 0
-            self.game_controller.drum.display(self.player_number, "warriors", self.warriors)
+            self.warriors += self.gc.dragon.warriors
+            self.gc.dragon.warriors = 0
+            self.gc.drum.display(self.player_number, "warriors", self.warriors)
 
-            self.gold += self.game_controller.dragon.gold
-            self.game_controller.dragon.gold = 0
-            self.game_controller.drum.display(self.player_number, "gold", self.gold)
+            self.gold += self.gc.dragon.gold
+            self.gc.dragon.gold = 0
+            self.gc.drum.display(self.player_number, "gold", self.gold)
 
         else:
             def calculate_loss(value) -> int:
@@ -128,23 +131,23 @@ class Player:
             self.gold = self.gold - lost_gold
             self.warriors = self.warriors - lost_warriors
 
-            self.game_controller.dragon.gold += lost_gold
-            self.game_controller.dragon.warriors += lost_warriors
+            self.gc.dragon.gold += lost_gold
+            self.gc.dragon.warriors += lost_warriors
 
-            self.game_controller.drum.display(self.player_number, "dragon")
-            self.game_controller.drum.display(self.player_number, "gold", self.gold)
-            self.game_controller.drum.display(self.player_number, "warriors", self.warriors)
+            self.gc.drum.display(self.player_number, "dragon")
+            self.gc.drum.display(self.player_number, "gold", self.gold)
+            self.gc.drum.display(self.player_number, "warriors", self.warriors)
     
     def add_key(self):
         if self.kingdom == 2 and not self.bronze_key:
             self.bronze_key = True
-            self.game_controller.drum.display(self.player_number, "Bronze Key")
+            self.gc.drum.display(self.player_number, "Bronze Key")
         elif self.kingdom == 3 and not self.silver_key:
             self.silver_key = True
-            self.game_controller.drum.display(self.player_number, "Silver Key")
+            self.gc.drum.display(self.player_number, "Silver Key")
         elif self.kingdom == 4 and not self.gold_key:
             self.gold_key = True
-            self.game_controller.drum.display(self.player_number, "Gold Key")
+            self.gc.drum.display(self.player_number, "Gold Key")
     
     def add_dragon_sword(self):
         self.dragon_sword = True
@@ -159,4 +162,4 @@ class Player:
         self.pegasus = True
     
     def add_wizard(self):
-        self.game_controller.set_message(f"Player {self.player_number} has acquired the Wizard!")
+        self.gc.set_message(f"Player {self.player_number} has acquired the Wizard!")

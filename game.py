@@ -199,6 +199,10 @@ class GameController:
         self.state_machine = StateMachine(self)
         self.state_machine.start()
         
+    def set_gm_status(self, status: str):
+        """Update the status label text in game master window"""
+        self.game_master_window.update_status_window(status)
+
     def set_message(self, message):
         """Set the message text below the display"""
         self.message_label.config(text=message)

@@ -4,7 +4,11 @@ Level Select State
 This state allows the player to select a difficulty level before starting the game.
 """
 
+from typing import TYPE_CHECKING
 from states.base_state import State
+
+if TYPE_CHECKING:
+    from game import GameController
 
 
 class LevelSelectState(State):
@@ -17,33 +21,34 @@ class LevelSelectState(State):
     - Level 3 (Hard)
     """
     
-    def __init__(self, game_controller):
+    def __init__(self, game_controller: "GameController"):
         super().__init__(game_controller)
         self.current_level = 1
+        self.gc: "GameController" = game_controller
+        self.display = self.gc.display
     
     def enter(self, **kwargs):
         """Set up references to the display"""
-        display = self.game_controller.display
-        
         # Show initial level
-        display.set_value(["l", self.current_level])
+        self.display.set_value(["l", self.current_level])
 
-        # if self.game_controller.IS_DEBUG:
-        #     self.current_level = 1
-        #     self.on_button_click("YES")
+        self.gc.set_gm_status(f"Select Level State")
+
+        if self.gc.IS_DEBUG:
+            self.current_level = 1
+            self.on_button_click("YES")
+        
     
     def on_button_click(self, text):
         """Handle button clicks in level select state"""
-        display = self.game_controller.display
-        
         # Level selection buttons
         if text == "NO":
             self.current_level += 1
             if self.current_level > 3:
                 self.current_level = 1
-            display.set_value(["l", self.current_level])
+            self.display.set_value(["l", self.current_level])
         if text == "YES":
-            self.game_controller.state_machine.change_state("player_select")
+            self.gc.state_machine.change_state("player_select")
 
     def exit(self):
         pass

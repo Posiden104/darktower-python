@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 
 class Dragon:
 
-    def __init__(self, game_controller: "GameController"):
+    def __init__(self, gc: "GameController"):
         self.gold = 0
         self.warriors = 0
     

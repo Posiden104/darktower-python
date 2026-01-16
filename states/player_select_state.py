@@ -18,11 +18,17 @@ class PlayerSelectState(State):
         super().__init__(game_controller)
         self.game_controller: "GameController" = game_controller
         self.player_count = 1
+        self.display = self.game_controller.display
         
     def enter(self, **kwargs):
         """Set up the player select UI"""
-        self.display = self.game_controller.display
+        self.game_controller.set_gm_status(f"Select Player State")
         self.display.set_value(self.player_count)
+
+        if self.game_controller.IS_DEBUG:
+            self.player_count = 3
+            self.on_button_click("YES")
+        
     
     def on_button_click(self, text):
         """Handle button clicks"""
@@ -36,5 +42,5 @@ class PlayerSelectState(State):
             self.game_controller.state_machine.change_state("player_turn", player_number=1)
 
     def exit(self):
-        self.game_controller.setup_player_menu()
+        # self.game_controller.setup_player_menu()
         self.game_controller.game_master_window.create_stats_window()
